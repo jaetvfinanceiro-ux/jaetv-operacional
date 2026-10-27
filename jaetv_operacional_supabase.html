@@ -1,0 +1,140 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>JAETV OPERACIONAL</title>
+<style>
+:root{--bg:#f6f3ff;--ink:#21143b;--muted:#766b8c;--green:#6425c7;--line:#e5dcf5;--white:#fff;--red:#b42318;--amber:#9a6700}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:15px system-ui,-apple-system,Segoe UI,sans-serif}
+header{background:linear-gradient(120deg,#170744,#3c0b83,#8b16d9);color:white;padding:22px max(18px,calc((100vw - 1180px)/2));display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap}
+.brand{display:flex;align-items:center;gap:12px}.logo{width:46px;height:46px;border-radius:13px;background:#ffffff20;display:grid;place-items:center;font-weight:900;font-size:37px;line-height:1;color:#f2c7ff}.brand h1{font-size:20px;margin:0;letter-spacing:.4px}.brand p{margin:4px 0 0;color:#eadbff;font-size:12px}
+main{max-width:1180px;margin:22px auto;padding:0 16px}.notice{background:#f2eaff;border:1px solid #ddc7ff;padding:12px 14px;border-radius:12px;margin-bottom:16px;color:#54208a;font-size:13px}
+.cards{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}.card,.panel{background:var(--white);border:1px solid var(--line);border-radius:16px;padding:17px;box-shadow:0 2px 8px #163c2810}.card small{color:var(--muted)}.num{font-size:26px;font-weight:750;margin-top:7px}.toolbar{display:flex;gap:10px;flex-wrap:wrap;margin:18px 0}.toolbar input,.toolbar select,.field input,.field select,.field textarea{width:100%;border:1px solid #d8cce9;border-radius:9px;padding:11px;background:white;color:var(--ink);font:inherit}.toolbar .search{flex:1;min-width:190px}.btn{border:0;border-radius:9px;padding:11px 14px;background:var(--green);color:#fff;font-weight:650;cursor:pointer}.btn.secondary{background:#f0e7ff;color:#5420a3}.btn.danger{background:#fff0ee;color:#a4261c}.sectionhead{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:12px}.sectionhead h2{font-size:18px;margin:0}.tablewrap{overflow:auto}table{width:100%;border-collapse:collapse;min-width:850px}th,td{text-align:left;padding:12px 10px;border-bottom:1px solid #eee7f7;font-size:13px}th{color:var(--muted);font-weight:650;background:#fcfaff}.pill{display:inline-block;padding:5px 8px;border-radius:99px;font-size:11px;font-weight:750}.paid{background:#e8f8ee;color:#17653b}.due{background:#fff3d1;color:#865b00}.late{background:#ffebe9;color:#a4261c}.inactive{background:#edf0ee;color:#5c6862}.actions{display:flex;gap:6px;flex-wrap:wrap}.actions button{font-size:12px;padding:7px 9px}.empty{text-align:center;color:var(--muted);padding:28px}
+.modal{position:fixed;inset:0;background:#0b2118a6;display:none;align-items:center;justify-content:center;padding:16px;z-index:4}.modal.open{display:flex}.dialog{background:white;border-radius:18px;padding:20px;width:min(680px,100%);max-height:92vh;overflow:auto}.dialog h2{margin:0 0 16px}.formgrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.field{display:flex;flex-direction:column;gap:6px}.field label{font-size:12px;font-weight:700;color:#53655b}.field.full{grid-column:1/-1}.dialogfoot{display:flex;justify-content:flex-end;gap:8px;margin-top:18px;flex-wrap:wrap}.smallnote{color:var(--muted);font-size:12px;margin-top:10px}
+@media(max-width:760px){.cards{grid-template-columns:repeat(2,minmax(0,1fr))}.formgrid{grid-template-columns:1fr}.field.full{grid-column:auto}.num{font-size:23px}header{padding:18px}.sectionhead h2{font-size:17px}}
+</style><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+<section id="loginScreen" style="max-width:440px;margin:8vh auto;padding:24px;background:white;border:1px solid #e5dcf5;border-radius:18px;box-shadow:0 8px 30px #21143b12">
+<h2 style="margin-top:0">Acesso ao JAETV OPERACIONAL</h2>
+<p style="color:#766b8c;font-size:14px">Entre com o usuário criado no Supabase Authentication.</p>
+<form id="loginForm" style="display:grid;gap:12px">
+<label style="display:grid;gap:6px">E-mail<input id="loginEmail" type="email" required autocomplete="username" style="padding:12px;border:1px solid #d8cce9;border-radius:9px"></label>
+<label style="display:grid;gap:6px">Senha<input id="loginPassword" type="password" required autocomplete="current-password" style="padding:12px;border:1px solid #d8cce9;border-radius:9px"></label>
+<button class="btn" type="submit">Entrar</button><p id="loginMessage" style="font-size:13px;color:#a4261c;margin:0"></p>
+</form></section>
+<div id="appScreen" style="display:none">
+<header><div class="brand"><div class="logo">∞</div><div><h1>JAETV OPERACIONAL</h1><p>Gestão de clientes • vencimentos • recebimentos</p></div></div><button class="btn secondary" id="exportBtn">Exportar CSV</button></header>
+<main>
+<div class="notice"><b>Banco online conectado:</b> os dados são carregados do Supabase após o login.</div>
+<section class="cards">
+<div class="card"><small>Total de clientes</small><div class="num" id="total">0</div></div>
+<div class="card"><small>Vencem hoje</small><div class="num" id="today">0</div></div>
+<div class="card"><small>Em atraso</small><div class="num" id="late">0</div></div>
+<div class="card"><small>Total a receber</small><div class="num" id="income">R$ 0,00</div></div>
+</section>
+<div class="toolbar"><input class="search" id="search" placeholder="Buscar por nome ou WhatsApp..."><select id="filter"><option value="all">Todos os status</option><option value="paid">Pago</option><option value="due">Vence hoje</option><option value="late">Atrasado</option><option value="upcoming">A vencer</option></select><select id="serverFilter"><option value="all">Todos os servidores</option></select><button class="btn" id="addBtn">+ Novo cliente</button></div>
+<section class="panel"><div class="sectionhead"><h2>Clientes e vencimentos</h2><span id="count" style="color:#766b8c;font-size:12px">0 registros</span></div><div class="tablewrap"><table><thead><tr><th>Cliente</th><th>WhatsApp</th><th>Servidor</th><th>Plano</th><th>Valor</th><th>Vencimento</th><th>Status</th><th>Ações</th></tr></thead><tbody id="tbody"></tbody></table><div class="empty" id="empty">Nenhum cliente cadastrado. Clique em “Novo cliente” para começar.</div></div></section>
+<section class="panel" style="margin-top:16px"><div class="sectionhead"><h2>Últimos pagamentos</h2><span style="color:#766b8c;font-size:12px">Histórico salvo no banco online</span></div><div id="history" class="empty">Ainda não há pagamentos registrados.</div></section>
+<p class="smallnote">Privacidade: use apenas dados necessários e proteja o acesso ao aparelho. Não cadastre senhas de clientes neste painel.</p>
+</main>
+<div class="modal" id="modal"><div class="dialog"><h2 id="formTitle">Novo cliente</h2><form id="clientForm"><input type="hidden" id="clientId"><div class="formgrid">
+<div class="field"><label for="name">Nome do cliente *</label><input id="name" required maxlength="100"></div>
+<div class="field"><label for="phone">WhatsApp com DDD *</label><input id="phone" required placeholder="Ex.: 5527999999999"></div>
+<div class="field"><label for="server">Servidor *</label><input id="server" required list="servers" placeholder="Nome do servidor"><datalist id="servers"></datalist></div>
+<div class="field"><label for="plan">Plano *</label><input id="plan" required placeholder="Ex.: mensal / 1 acesso"></div>
+<div class="field"><label for="price">Valor (R$) *</label><input id="price" type="number" min="0" step=".01" required></div>
+<div class="field"><label for="dueDate">Próximo vencimento *</label><input id="dueDate" type="date" required></div>
+<div class="field"><label for="status">Status</label><select id="status"><option value="due">Pendente</option><option value="paid">Pago</option><option value="inactive">Inativo</option></select></div>
+<div class="field"><label for="notes">Observações</label><input id="notes" maxlength="250" placeholder="Opcional"></div>
+</div><div class="dialogfoot"><button type="button" class="btn secondary" id="cancelBtn">Cancelar</button><button class="btn" type="submit">Salvar cliente</button></div></form></div></div>
+</div><!-- appScreen -->
+<script>
+const SUPABASE_URL = 'https://izppesraabevzxoyhnms.supabase.co';
+const SUPABASE_ANON_KEY = 'sb_publishable_6omdK4suCbPxOdAgzUpabw_5aBA1S7t';
+const $ = id => document.getElementById(id);
+let sb, currentUser, clients=[], payments=[];
+const todayISO=()=>{const d=new Date();d.setMinutes(d.getMinutes()-d.getTimezoneOffset());return d.toISOString().slice(0,10)};
+const money=v=>Number(v||0).toLocaleString('pt-BR',{style:'currency',currency:'BRL'});
+const escapeHtml=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const fromDbStatus=s=>({pendente:'due',pago:'paid',inativo:'inactive'}[s]||'due');
+const toDbStatus=s=>({due:'pendente',paid:'pago',inactive:'inativo'}[s]||'pendente');
+function state(c){if(c.status==='inactive')return 'inactive';if(c.status==='paid'&&c.dueDate>todayISO())return 'paid';if(c.dueDate<todayISO())return 'late';if(c.dueDate===todayISO())return 'due';return 'upcoming'}
+function stateLabel(s){return ({paid:'Pago',due:'Vence hoje',late:'Atrasado',upcoming:'A vencer',inactive:'Inativo'})[s]}
+function nextDueDate(c){const base=c.dueDate>todayISO()?c.dueDate:todayISO();const d=new Date(base+'T12:00:00');const day=d.getDate();d.setDate(1);d.setMonth(d.getMonth()+1);const last=new Date(d.getFullYear(),d.getMonth()+1,0).getDate();d.setDate(Math.min(day,last));return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')}
+function clientFromDb(r){return {id:r.id,name:r.nome,phone:r.whatsapp,server:r.servidor,plan:r.plano,price:Number(r.valor),dueDate:r.vencimento,status:fromDbStatus(r.status),notes:r.observacoes||'',user_id:r.user_id}}
+function clientToDb(c){return {user_id:currentUser.id,nome:c.name,whatsapp:c.phone,servidor:c.server,plano:c.plan,valor:c.price,vencimento:c.dueDate,status:toDbStatus(c.status),observacoes:c.notes||null}}
+async function loadData(){
+ const [cr,pr]=await Promise.all([
+  sb.from('clientes').select('*').order('criado_em',{ascending:false}),
+  sb.from('pagamentos').select('*').order('data_pagamento',{ascending:false}).limit(100)
+ ]);
+ if(cr.error) throw cr.error; if(pr.error) throw pr.error;
+ clients=(cr.data||[]).map(clientFromDb);
+ payments=(pr.data||[]).map(p=>({id:p.id,date:(p.data_pagamento||'').slice(0,10),name:p.nome_cliente,price:Number(p.valor),note:p.observacoes||'Pagamento confirmado'}));
+ render();
+}
+function render(){
+ const active=clients.filter(c=>c.status!=='inactive');
+ $('total').textContent=clients.length;
+ $('today').textContent=active.filter(c=>state(c)==='due').length;
+ $('late').textContent=active.filter(c=>state(c)==='late').length;
+ $('income').textContent=money(active.filter(c=>state(c)!=='paid').reduce((s,c)=>s+Number(c.price),0));
+ const q=$('search').value.toLowerCase(), f=$('filter').value, sf=$('serverFilter').value;
+ const list=clients.filter(c=>(c.name+' '+c.phone).toLowerCase().includes(q)&&(f==='all'||state(c)===f)&&(sf==='all'||c.server===sf));
+ $('count').textContent=list.length+' registros'; $('empty').style.display=list.length?'none':'block';
+ $('tbody').innerHTML=list.map(c=>{const st=state(c);return `<tr><td><b>${escapeHtml(c.name)}</b>${c.notes?`<br><small>${escapeHtml(c.notes)}</small>`:''}</td><td>${escapeHtml(c.phone)}</td><td>${escapeHtml(c.server)}</td><td>${escapeHtml(c.plan)}</td><td>${money(c.price)}</td><td>${c.dueDate.split('-').reverse().join('/')}</td><td><span class="pill ${st}">${stateLabel(st)}</span></td><td><div class="actions"><button class="btn" onclick="charge('${c.id}')">WhatsApp</button><button class="btn secondary" onclick="editClient('${c.id}')">Editar</button>${st!=='paid'&&st!=='inactive'?`<button class="btn secondary" onclick="markPaid('${c.id}')">Marcar pago</button>`:''}</div></td></tr>`}).join('');
+ const servers=[...new Set(clients.map(c=>c.server).filter(Boolean))], old=$('serverFilter').value;
+ $('serverFilter').innerHTML='<option value="all">Todos os servidores</option>'+servers.map(x=>`<option value="${escapeHtml(x)}">${escapeHtml(x)}</option>`).join('');
+ if(servers.includes(old))$('serverFilter').value=old;
+ $('servers').innerHTML=servers.map(x=>`<option value="${escapeHtml(x)}">`).join('');
+ $('history').innerHTML=payments.length?'<div class="tablewrap"><table><thead><tr><th>Data</th><th>Cliente</th><th>Valor</th><th>Registrado</th></tr></thead><tbody>'+payments.slice(0,10).map(p=>`<tr><td>${p.date?new Date(p.date+'T12:00:00').toLocaleDateString('pt-BR'):'—'}</td><td>${escapeHtml(p.name)}</td><td>${money(p.price)}</td><td>${escapeHtml(p.note||'Pagamento confirmado')}</td></tr>`).join('')+'</tbody></table></div>':'Ainda não há pagamentos registrados.';
+}
+function openModal(c){$('clientForm').reset();$('clientId').value=c?.id||'';$('formTitle').textContent=c?'Editar cliente':'Novo cliente';$('name').value=c?.name||'';$('phone').value=c?.phone||'';$('server').value=c?.server||'';$('plan').value=c?.plan||'';$('price').value=c?.price??'';$('dueDate').value=c?.dueDate||todayISO();$('status').value=c?.status||'due';$('notes').value=c?.notes||'';$('modal').classList.add('open')}
+function closeModal(){$('modal').classList.remove('open')}
+async function refresh(){try{await loadData()}catch(e){alert('Não foi possível carregar os dados: '+e.message)}}
+async function startApp(session){
+ currentUser=session.user;
+ $('loginScreen').style.display='none';$('appScreen').style.display='block';
+ await refresh();
+}
+$('loginForm').onsubmit=async e=>{e.preventDefault();$('loginMessage').textContent='';
+ if(!sb){$('loginMessage').textContent='Configure a chave pública do Supabase no arquivo HTML antes de entrar.';return}
+ const {data,error}=await sb.auth.signInWithPassword({email:$('loginEmail').value.trim(),password:$('loginPassword').value});
+ if(error){$('loginMessage').textContent='Não foi possível entrar: '+error.message;return}
+ await startApp(data.session);
+};
+$('addBtn').onclick=()=>openModal();$('cancelBtn').onclick=closeModal;$('search').oninput=render;$('filter').onchange=render;$('serverFilter').onchange=render;
+$('clientForm').onsubmit=async e=>{
+ e.preventDefault();
+ const id=$('clientId').value, old=clients.find(c=>c.id===id);
+ const c={id,name:$('name').value.trim(),phone:$('phone').value.trim(),server:$('server').value.trim(),plan:$('plan').value.trim(),price:Number($('price').value),dueDate:$('dueDate').value,status:$('status').value,notes:$('notes').value.trim()};
+ try{
+  if(old){
+   const {error}=await sb.from('clientes').update(clientToDb(c)).eq('id',id);if(error)throw error;
+   if(old.status!=='paid'&&c.status==='paid') await insertPayment(c,'Pagamento marcado manualmente');
+  }else{
+   const {data,error}=await sb.from('clientes').insert(clientToDb(c)).select().single();if(error)throw error;c.id=data.id;
+   if(c.status==='paid')await insertPayment(c,'Cliente cadastrado como pago');
+  }
+  closeModal();await loadData();
+ }catch(err){alert('Erro ao salvar cliente: '+err.message)}
+};
+async function insertPayment(c,note){
+ const {error}=await sb.from('pagamentos').insert({user_id:currentUser.id,cliente_id:c.id||null,nome_cliente:c.name,valor:Number(c.price),data_pagamento:new Date().toISOString(),observacoes:note});
+ if(error)throw error;
+}
+window.editClient=id=>openModal(clients.find(c=>c.id===id));
+window.charge=id=>{const c=clients.find(c=>c.id===id);const p=c.phone.replace(/\D/g,'');if(p.length<10){alert('Confira o WhatsApp e inclua o código do país, DDD e número. Ex.: 5527999999999');return}const msg=`Olá, ${c.name}! 😊 Passando para lembrar que seu plano ${c.plan} no valor de ${money(c.price)} vence em ${c.dueDate.split('-').reverse().join('/')}. Para continuar utilizando o serviço, me avise quando realizar o pagamento. Obrigado(a)!`;window.open('https://wa.me/'+p+'?text='+encodeURIComponent(msg),'_blank')};
+window.markPaid=async id=>{const c=clients.find(c=>c.id===id);if(!c)return;if(!confirm('Confirmar pagamento de '+c.name+' no valor de '+money(c.price)+'? O pagamento será registrado no histórico e o próximo vencimento será atualizado.'))return;
+ try{await insertPayment(c,'Pagamento confirmado manualmente');const {error}=await sb.from('clientes').update({status:'pago',vencimento:nextDueDate(c)}).eq('id',c.id);if(error)throw error;await loadData()}catch(err){alert('Erro ao registrar pagamento: '+err.message)}
+};
+$('exportBtn').onclick=()=>{const cols=['name','phone','server','plan','price','dueDate','status','notes'];const csv=[cols.join(';'),...clients.map(c=>cols.map(k=>'"'+String(c[k]??'').replace(/"/g,'""')+'"').join(';'))].join('\r\n');const a=document.createElement('a');a.href=URL.createObjectURL(new Blob(['\ufeff'+csv],{type:'text/csv;charset=utf-8;'}));a.download='jaetv-clientes.csv';a.click();URL.revokeObjectURL(a.href)};
+(async()=>{
+ if(SUPABASE_ANON_KEY!=='COLE_AQUI_SUA_CHAVE_PUBLISHABLE_OU_ANON'&&window.supabase){
+  sb=window.supabase.createClient(SUPABASE_URL,SUPABASE_ANON_KEY);
+  const {data}=await sb.auth.getSession();
+  if(data.session) await startApp(data.session);
+ }
+})();
+</script></body></html>
